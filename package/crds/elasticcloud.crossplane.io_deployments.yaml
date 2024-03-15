@@ -1,0 +1,2488 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: deployments.elasticcloud.crossplane.io
+spec:
+  group: elasticcloud.crossplane.io
+  names:
+    categories:
+    - crossplane
+    - managed
+    - ec
+    kind: Deployment
+    listKind: DeploymentList
+    plural: deployments
+    singular: deployment
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Synced')].status
+      name: SYNCED
+      type: string
+    - jsonPath: .metadata.annotations.crossplane\.io/external-name
+      name: EXTERNAL-NAME
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: AGE
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Deployment is the Schema for the Deployments API. Provides an
+          Elastic Cloud deployment resource, which allows deployments to be created,
+          updated, and deleted.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DeploymentSpec defines the desired state of Deployment
+            properties:
+              deletionPolicy:
+                default: Delete
+                description: |-
+                  DeletionPolicy specifies what will happen to the underlying external
+                  when this managed resource is deleted - either "Delete" or "Orphan" the
+                  external resource.
+                  This field is planned to be deprecated in favor of the ManagementPolicies
+                  field in a future release. Currently, both could be set independently and
+                  non-default values would be honored if the feature flag is enabled.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                enum:
+                - Orphan
+                - Delete
+                type: string
+              forProvider:
+                properties:
+                  alias:
+                    description: |-
+                      Deployment alias, affects the format of the resource URLs.
+                      Optional deployment alias that affects the format of the resource URLs
+                    type: string
+                  apm:
+                    description: |-
+                      DEPRECATED  APM instance definition, can only be specified once. It should only be used with deployments with a version prior to 8.0.0.
+                      Optional APM resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            APM settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Apm configuration options for the APM Server
+                          items:
+                            properties:
+                              debugEnabled:
+                                description: |-
+                                  Enable debug mode for APM servers. Defaults to false.
+                                  Optionally enable debug mode for APM servers - defaults to false
+                                type: boolean
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the APM nodes will use. Note that this field will
+                                  only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level apm.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level apm.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level apm.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level apm.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the APM resource. The default
+                            value main-apm is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since APM has only one instance type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the APM deployment
+                                  will span. This is used to set HA. When omitted,
+                                  it defaults to the deployment template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  deploymentTemplateId:
+                    description: |-
+                      Deployment template identifier to create the deployment from. See the full list of regions and deployment templates available in ESS.
+                      Required Deployment Template identifier to create the deployment from
+                    type: string
+                  elasticsearch:
+                    description: |-
+                      node Elasticsearch clusters, use multiple topology blocks.
+                      Required Elasticsearch resource definition
+                    items:
+                      properties:
+                        autoscale:
+                          description: |-
+                            Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".
+                            Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".
+                          type: string
+                        config:
+                          description: |-
+                            Elasticsearch settings applied to all topologies unless overridden in the topology element.
+                            Optional Elasticsearch settings which will be applied to all topologies unless overridden on the topology element
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Elasticsearch nodes will use. Note that this
+                                  field will only work for internal users only.
+                                type: string
+                              plugins:
+                                description: |-
+                                  List of Elasticsearch supported plugins. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and ecctl.
+                                  List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level elasticsearch.yml setting overrides.
+                                  JSON-formatted user level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level elasticsearch.yml setting overrides.
+                                  JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level elasticsearch.yml setting overrides.
+                                  YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level elasticsearch.yml setting overrides.
+                                  YAML-formatted user level "elasticsearch.yml" setting overrides
+                                type: string
+                            type: object
+                          type: array
+                        extension:
+                          description: |-
+                            Custom Elasticsearch bundles or plugins. Can be set multiple times.
+                            Optional Elasticsearch extensions such as custom bundles or plugins.
+                          items:
+                            properties:
+                              name:
+                                description: |-
+                                  Extension name.
+                                  Extension name.
+                                type: string
+                              type:
+                                description: |-
+                                  Extension type, only bundle or plugin are supported.
+                                  Extension type, only `bundle` or `plugin` are supported.
+                                type: string
+                              url:
+                                description: |-
+                                  Bundle or plugin URL, the extension URL can be obtained from the ec_deployment_extension.<name>.url attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+                                  Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+                                type: string
+                              version:
+                                description: |-
+                                  Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as 7.* or * but plugins must use full version notation down to the patch level, such as 7.10.1 and wildcards are not allowed.
+                                  Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.
+                                type: string
+                            type: object
+                          type: array
+                        refId:
+                          description: |-
+                            Can be set on the Elasticsearch resource. The default value main-elasticsearch is recommended.
+                            Optional ref_id to set on the Elasticsearch resource
+                          type: string
+                        remoteCluster:
+                          description: |-
+                            Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
+                            Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times
+                          items:
+                            properties:
+                              alias:
+                                description: |-
+                                  Alias for the Cross Cluster Search binding.
+                                  Alias for this Cross Cluster Search binding
+                                type: string
+                              deploymentId:
+                                description: |-
+                                  Remote deployment ID.
+                                  Remote deployment ID
+                                type: string
+                              refId:
+                                description: |-
+                                  elasticsearch is recommended.
+                                  Remote elasticsearch "ref_id", it is best left to the default value
+                                type: string
+                              skipUnavailable:
+                                description: |-
+                                  If true, skip the cluster during search when disconnected. Defaults to false.
+                                  If true, skip the cluster during search when disconnected
+                                type: boolean
+                            type: object
+                          type: array
+                        snapshotSource:
+                          description: |-
+                            Restores data from a snapshot of another deployment.
+                            Optional snapshot source settings. Restore data from a snapshot of another deployment.
+                          items:
+                            properties:
+                              snapshotName:
+                                description: |-
+                                  Name of the snapshot to restore. Use __latest_success__ to get the most recent successful snapshot (Defaults to __latest_success__).
+                                  Name of the snapshot to restore. Use '__latest_success__' to get the most recent successful snapshot.
+                                type: string
+                              sourceElasticsearchClusterId:
+                                description: |-
+                                  ID of the Elasticsearch cluster, not to be confused with the deployment ID, that will be used as the source of the snapshot. The Elasticsearch cluster must be in the same region and must have a compatible version of the Elastic Stack.
+                                  ID of the Elasticsearch cluster that will be used as the source of the snapshot
+                                type: string
+                            type: object
+                          type: array
+                        strategy:
+                          description: |-
+                            Choose the configuration strategy used to apply the changes.
+                            Configuration strategy settings.
+                          items:
+                            properties:
+                              type:
+                                description: |-
+                                  Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
+                                  Configuration strategy type autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all
+                                type: string
+                            type: object
+                          type: array
+                        topology:
+                          description: |-
+                            Can be set multiple times to compose complex topologies.
+                            Optional topology element which must be set once but can be set multiple times to compose complex topologies
+                          items:
+                            properties:
+                              autoscaling:
+                                description: |-
+                                  Autoscaling policy defining the maximum and / or minimum total size for this topology element. For more information refer to the autoscaling block.
+                                  Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.
+                                items:
+                                  properties:
+                                    maxSize:
+                                      description: |-
+                                        Defines the maximum size the deployment will scale up to. When set, scaling up will be enabled. All tiers should support this option.
+                                        Maximum size value for the maximum autoscaling setting.
+                                      type: string
+                                    maxSizeResource:
+                                      description: |-
+                                        Defines the resource type the scale up will use (Defaults to "memory").
+                                        Maximum resource type for the maximum autoscaling setting.
+                                      type: string
+                                    minSize:
+                                      description: |-
+                                        Defines the minimum size the deployment will scale down to. When set, scale down will be enabled, please note that not all the tiers support this option.
+                                        Minimum size value for the minimum autoscaling setting.
+                                      type: string
+                                    minSizeResource:
+                                      description: |-
+                                        Defines the resource type the scale down will use (Defaults to "memory").
+                                        Minimum resource type for the minimum autoscaling setting.
+                                      type: string
+                                  type: object
+                                type: array
+                              id:
+                                description: |-
+                                  Unique topology identifier. It generally refers to an Elasticsearch data tier, such as hot_content, warm, cold, coordinating, frozen, ml or master.
+                                  Required topology ID from the deployment template
+                                type: string
+                              nodeTypeData:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (data node).
+                                  The node type for the Elasticsearch Topology element (data node)
+                                type: string
+                              nodeTypeIngest:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (ingest node).
+                                  The node type for the Elasticsearch Topology element (ingest node)
+                                type: string
+                              nodeTypeMaster:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (master node).
+                                  The node type for the Elasticsearch Topology element (master node)
+                                type: string
+                              nodeTypeMl:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (machine learning node).
+                                  The node type for the Elasticsearch Topology element (machine learning node)
+                                type: string
+                              size:
+                                description: |-
+                                  Amount in Gigabytes per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
+                                  Optional amount of memory per node in the "<size in GB>g" notation
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: |-
+                                  Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
+                                  Optional number of zones that the Elasticsearch cluster will span. This is used to set HA
+                                type: number
+                            type: object
+                          type: array
+                        trustAccount:
+                          description: |-
+                            The trust relationships with other ESS accounts.
+                            Optional Elasticsearch account trust settings.
+                          items:
+                            properties:
+                              accountId:
+                                description: |-
+                                  The account identifier to establish the new trust with.
+                                  The ID of the Account.
+                                type: string
+                              trustAll:
+                                description: |-
+                                  If true, all clusters in this account will by default be trusted and the trust_allowlist is ignored.
+                                  If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+                                type: boolean
+                              trustAllowlist:
+                                description: |-
+                                  The list of clusters to trust. Only used when trust_all is false.
+                                  The list of clusters to trust. Only used when `trust_all` is false.
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                            type: object
+                          type: array
+                        trustExternal:
+                          description: |-
+                            The trust relationship with external entities (remote environments, remote accounts...).
+                            Optional Elasticsearch external trust settings.
+                          items:
+                            properties:
+                              relationshipId:
+                                description: |-
+                                  Identifier of the the trust relationship with external entities (remote environments, remote accounts...).
+                                  The ID of the external trust relationship.
+                                type: string
+                              trustAll:
+                                description: |-
+                                  If true, all clusters in this external entity will be trusted and the trust_allowlist is ignored.
+                                  If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+                                type: boolean
+                              trustAllowlist:
+                                description: |-
+                                  The list of clusters to trust. Only used when trust_all is false.
+                                  The list of clusters to trust. Only used when `trust_all` is false.
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  enterpriseSearch:
+                    description: |-
+                      node Enterprise Search deployments, use multiple topology blocks.
+                      Optional Enterprise Search resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Enterprise Search settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Enterprise Search configuration options for the Enterprise Search Server
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Enterprise Search nodes will use. Note that
+                                  this field will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level enterprise_search.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level enterprise_search.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level enterprise_search.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level enterprise_search.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the Enterprise Search resource.
+                            The default value main-enterprise_search is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. To change it, use the full
+                                  list of regions and deployment templates available
+                                  in ESS.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Enterprise Search
+                                  deployment will span. This is used to set HA. When
+                                  omitted, it defaults to the deployment template
+                                  value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  integrationsServer:
+                    description: |-
+                      Integrations Server instance definition, can only be specified once. It has replaced apm in stack version 8.0.0.
+                      Optional Integrations Server resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Integrations Server settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server
+                          items:
+                            properties:
+                              debugEnabled:
+                                description: |-
+                                  Enable debug mode for the component. Defaults to false.
+                                  Optionally enable debug mode for IntegrationsServer servers - defaults to false
+                                type: boolean
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the IntegrationsServer nodes will use. Note that
+                                  this field will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the Integrations Server resource.
+                            The default value main-integrations_server is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since Integrations Server has only one instance
+                                  type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Integrations
+                                  Server deployment will span. This is used to set
+                                  HA. When omitted, it defaults to the deployment
+                                  template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  kibana:
+                    description: |-
+                      Kibana instance definition, can only be specified once.
+                      Optional Kibana resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Kibana settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Kibana configuration options for the Kibana Server
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Kibana nodes will use. Note that this field
+                                  will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the Kibana resource. The default
+                            value main-kibana is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since Kibana has only one instance type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Kibana deployment
+                                  will span. This is used to set HA. When omitted,
+                                  it defaults to the deployment template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  name:
+                    description: |-
+                      Name of the deployment.
+                      Optional name for the deployment
+                    type: string
+                  observability:
+                    description: |-
+                      Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself.
+                      Optional observability settings. Ship logs and metrics to a dedicated deployment.
+                    items:
+                      properties:
+                        deploymentId:
+                          description: Destination deployment ID for the shipped logs
+                            and monitoring metrics. Use self as destination deployment
+                            ID to target the current deployment.
+                          type: string
+                        logs:
+                          description: Enables or disables shipping logs. Defaults
+                            to true.
+                          type: boolean
+                        metrics:
+                          description: Enables or disables shipping metrics. Defaults
+                            to true.
+                          type: boolean
+                        refId:
+                          description: Elasticsearch resource kind ref_id of the destination
+                            deployment.
+                          type: string
+                      type: object
+                    type: array
+                  region:
+                    description: |-
+                      Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE) installations, set "ece-region".
+                      Required ESS region where to create the deployment, for ECE environments "ece-region" must be set
+                    type: string
+                  requestId:
+                    description: |-
+                      Request ID to set when you create the deployment. Use it only when previous attempts return an error and request_id is returned as part of the error.
+                      Optional request_id to set on the create operation, only use when previous create attempts return with an error and a request_id is returned as part of the error
+                    type: string
+                  tags:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Key value map of arbitrary string tags.
+                      Optional map of deployment tags
+                    type: object
+                    x-kubernetes-map-type: granular
+                  trafficFilter:
+                    description: |-
+                      List of traffic filter rule identifiers that will be applied to the deployment.
+                      Optional list of traffic filters to apply to this deployment.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                  version:
+                    description: |-
+                      Elastic Stack version to use for all the deployment resources.
+                      Required Elastic Stack version to use for all of the deployment resources
+                    type: string
+                type: object
+              initProvider:
+                description: |-
+                  THIS IS A BETA FIELD. It will be honored
+                  unless the Management Policies feature flag is disabled.
+                  InitProvider holds the same fields as ForProvider, with the exception
+                  of Identifier and other resource reference fields. The fields that are
+                  in InitProvider are merged into ForProvider when the resource is created.
+                  The same fields are also added to the terraform ignore_changes hook, to
+                  avoid updating them after creation. This is useful for fields that are
+                  required on creation, but we do not desire to update them after creation,
+                  for example because of an external controller is managing them, like an
+                  autoscaler.
+                properties:
+                  alias:
+                    description: |-
+                      Deployment alias, affects the format of the resource URLs.
+                      Optional deployment alias that affects the format of the resource URLs
+                    type: string
+                  apm:
+                    description: |-
+                      DEPRECATED  APM instance definition, can only be specified once. It should only be used with deployments with a version prior to 8.0.0.
+                      Optional APM resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            APM settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Apm configuration options for the APM Server
+                          items:
+                            properties:
+                              debugEnabled:
+                                description: |-
+                                  Enable debug mode for APM servers. Defaults to false.
+                                  Optionally enable debug mode for APM servers - defaults to false
+                                type: boolean
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the APM nodes will use. Note that this field will
+                                  only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level apm.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level apm.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level apm.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level apm.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the APM resource. The default
+                            value main-apm is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since APM has only one instance type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the APM deployment
+                                  will span. This is used to set HA. When omitted,
+                                  it defaults to the deployment template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  deploymentTemplateId:
+                    description: |-
+                      Deployment template identifier to create the deployment from. See the full list of regions and deployment templates available in ESS.
+                      Required Deployment Template identifier to create the deployment from
+                    type: string
+                  elasticsearch:
+                    description: |-
+                      node Elasticsearch clusters, use multiple topology blocks.
+                      Required Elasticsearch resource definition
+                    items:
+                      properties:
+                        autoscale:
+                          description: |-
+                            Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".
+                            Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".
+                          type: string
+                        config:
+                          description: |-
+                            Elasticsearch settings applied to all topologies unless overridden in the topology element.
+                            Optional Elasticsearch settings which will be applied to all topologies unless overridden on the topology element
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Elasticsearch nodes will use. Note that this
+                                  field will only work for internal users only.
+                                type: string
+                              plugins:
+                                description: |-
+                                  List of Elasticsearch supported plugins. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and ecctl.
+                                  List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level elasticsearch.yml setting overrides.
+                                  JSON-formatted user level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level elasticsearch.yml setting overrides.
+                                  JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level elasticsearch.yml setting overrides.
+                                  YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level elasticsearch.yml setting overrides.
+                                  YAML-formatted user level "elasticsearch.yml" setting overrides
+                                type: string
+                            type: object
+                          type: array
+                        extension:
+                          description: |-
+                            Custom Elasticsearch bundles or plugins. Can be set multiple times.
+                            Optional Elasticsearch extensions such as custom bundles or plugins.
+                          items:
+                            properties:
+                              name:
+                                description: |-
+                                  Extension name.
+                                  Extension name.
+                                type: string
+                              type:
+                                description: |-
+                                  Extension type, only bundle or plugin are supported.
+                                  Extension type, only `bundle` or `plugin` are supported.
+                                type: string
+                              url:
+                                description: |-
+                                  Bundle or plugin URL, the extension URL can be obtained from the ec_deployment_extension.<name>.url attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+                                  Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+                                type: string
+                              version:
+                                description: |-
+                                  Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as 7.* or * but plugins must use full version notation down to the patch level, such as 7.10.1 and wildcards are not allowed.
+                                  Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.
+                                type: string
+                            type: object
+                          type: array
+                        refId:
+                          description: |-
+                            Can be set on the Elasticsearch resource. The default value main-elasticsearch is recommended.
+                            Optional ref_id to set on the Elasticsearch resource
+                          type: string
+                        remoteCluster:
+                          description: |-
+                            Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
+                            Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times
+                          items:
+                            properties:
+                              alias:
+                                description: |-
+                                  Alias for the Cross Cluster Search binding.
+                                  Alias for this Cross Cluster Search binding
+                                type: string
+                              deploymentId:
+                                description: |-
+                                  Remote deployment ID.
+                                  Remote deployment ID
+                                type: string
+                              refId:
+                                description: |-
+                                  elasticsearch is recommended.
+                                  Remote elasticsearch "ref_id", it is best left to the default value
+                                type: string
+                              skipUnavailable:
+                                description: |-
+                                  If true, skip the cluster during search when disconnected. Defaults to false.
+                                  If true, skip the cluster during search when disconnected
+                                type: boolean
+                            type: object
+                          type: array
+                        snapshotSource:
+                          description: |-
+                            Restores data from a snapshot of another deployment.
+                            Optional snapshot source settings. Restore data from a snapshot of another deployment.
+                          items:
+                            properties:
+                              snapshotName:
+                                description: |-
+                                  Name of the snapshot to restore. Use __latest_success__ to get the most recent successful snapshot (Defaults to __latest_success__).
+                                  Name of the snapshot to restore. Use '__latest_success__' to get the most recent successful snapshot.
+                                type: string
+                              sourceElasticsearchClusterId:
+                                description: |-
+                                  ID of the Elasticsearch cluster, not to be confused with the deployment ID, that will be used as the source of the snapshot. The Elasticsearch cluster must be in the same region and must have a compatible version of the Elastic Stack.
+                                  ID of the Elasticsearch cluster that will be used as the source of the snapshot
+                                type: string
+                            type: object
+                          type: array
+                        strategy:
+                          description: |-
+                            Choose the configuration strategy used to apply the changes.
+                            Configuration strategy settings.
+                          items:
+                            properties:
+                              type:
+                                description: |-
+                                  Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
+                                  Configuration strategy type autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all
+                                type: string
+                            type: object
+                          type: array
+                        topology:
+                          description: |-
+                            Can be set multiple times to compose complex topologies.
+                            Optional topology element which must be set once but can be set multiple times to compose complex topologies
+                          items:
+                            properties:
+                              autoscaling:
+                                description: |-
+                                  Autoscaling policy defining the maximum and / or minimum total size for this topology element. For more information refer to the autoscaling block.
+                                  Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.
+                                items:
+                                  properties:
+                                    maxSize:
+                                      description: |-
+                                        Defines the maximum size the deployment will scale up to. When set, scaling up will be enabled. All tiers should support this option.
+                                        Maximum size value for the maximum autoscaling setting.
+                                      type: string
+                                    maxSizeResource:
+                                      description: |-
+                                        Defines the resource type the scale up will use (Defaults to "memory").
+                                        Maximum resource type for the maximum autoscaling setting.
+                                      type: string
+                                    minSize:
+                                      description: |-
+                                        Defines the minimum size the deployment will scale down to. When set, scale down will be enabled, please note that not all the tiers support this option.
+                                        Minimum size value for the minimum autoscaling setting.
+                                      type: string
+                                    minSizeResource:
+                                      description: |-
+                                        Defines the resource type the scale down will use (Defaults to "memory").
+                                        Minimum resource type for the minimum autoscaling setting.
+                                      type: string
+                                  type: object
+                                type: array
+                              id:
+                                description: |-
+                                  Unique topology identifier. It generally refers to an Elasticsearch data tier, such as hot_content, warm, cold, coordinating, frozen, ml or master.
+                                  Required topology ID from the deployment template
+                                type: string
+                              nodeTypeData:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (data node).
+                                  The node type for the Elasticsearch Topology element (data node)
+                                type: string
+                              nodeTypeIngest:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (ingest node).
+                                  The node type for the Elasticsearch Topology element (ingest node)
+                                type: string
+                              nodeTypeMaster:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (master node).
+                                  The node type for the Elasticsearch Topology element (master node)
+                                type: string
+                              nodeTypeMl:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (machine learning node).
+                                  The node type for the Elasticsearch Topology element (machine learning node)
+                                type: string
+                              size:
+                                description: |-
+                                  Amount in Gigabytes per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
+                                  Optional amount of memory per node in the "<size in GB>g" notation
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: |-
+                                  Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
+                                  Optional number of zones that the Elasticsearch cluster will span. This is used to set HA
+                                type: number
+                            type: object
+                          type: array
+                        trustAccount:
+                          description: |-
+                            The trust relationships with other ESS accounts.
+                            Optional Elasticsearch account trust settings.
+                          items:
+                            properties:
+                              accountId:
+                                description: |-
+                                  The account identifier to establish the new trust with.
+                                  The ID of the Account.
+                                type: string
+                              trustAll:
+                                description: |-
+                                  If true, all clusters in this account will by default be trusted and the trust_allowlist is ignored.
+                                  If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+                                type: boolean
+                              trustAllowlist:
+                                description: |-
+                                  The list of clusters to trust. Only used when trust_all is false.
+                                  The list of clusters to trust. Only used when `trust_all` is false.
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                            type: object
+                          type: array
+                        trustExternal:
+                          description: |-
+                            The trust relationship with external entities (remote environments, remote accounts...).
+                            Optional Elasticsearch external trust settings.
+                          items:
+                            properties:
+                              relationshipId:
+                                description: |-
+                                  Identifier of the the trust relationship with external entities (remote environments, remote accounts...).
+                                  The ID of the external trust relationship.
+                                type: string
+                              trustAll:
+                                description: |-
+                                  If true, all clusters in this external entity will be trusted and the trust_allowlist is ignored.
+                                  If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+                                type: boolean
+                              trustAllowlist:
+                                description: |-
+                                  The list of clusters to trust. Only used when trust_all is false.
+                                  The list of clusters to trust. Only used when `trust_all` is false.
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  enterpriseSearch:
+                    description: |-
+                      node Enterprise Search deployments, use multiple topology blocks.
+                      Optional Enterprise Search resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Enterprise Search settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Enterprise Search configuration options for the Enterprise Search Server
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Enterprise Search nodes will use. Note that
+                                  this field will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level enterprise_search.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level enterprise_search.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level enterprise_search.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level enterprise_search.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the Enterprise Search resource.
+                            The default value main-enterprise_search is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. To change it, use the full
+                                  list of regions and deployment templates available
+                                  in ESS.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Enterprise Search
+                                  deployment will span. This is used to set HA. When
+                                  omitted, it defaults to the deployment template
+                                  value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  integrationsServer:
+                    description: |-
+                      Integrations Server instance definition, can only be specified once. It has replaced apm in stack version 8.0.0.
+                      Optional Integrations Server resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Integrations Server settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server
+                          items:
+                            properties:
+                              debugEnabled:
+                                description: |-
+                                  Enable debug mode for the component. Defaults to false.
+                                  Optionally enable debug mode for IntegrationsServer servers - defaults to false
+                                type: boolean
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the IntegrationsServer nodes will use. Note that
+                                  this field will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the Integrations Server resource.
+                            The default value main-integrations_server is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since Integrations Server has only one instance
+                                  type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Integrations
+                                  Server deployment will span. This is used to set
+                                  HA. When omitted, it defaults to the deployment
+                                  template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  kibana:
+                    description: |-
+                      Kibana instance definition, can only be specified once.
+                      Optional Kibana resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Kibana settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Kibana configuration options for the Kibana Server
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Kibana nodes will use. Note that this field
+                                  will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        refId:
+                          description: Can be set on the Kibana resource. The default
+                            value main-kibana is recommended.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since Kibana has only one instance type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Kibana deployment
+                                  will span. This is used to set HA. When omitted,
+                                  it defaults to the deployment template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  name:
+                    description: |-
+                      Name of the deployment.
+                      Optional name for the deployment
+                    type: string
+                  observability:
+                    description: |-
+                      Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself.
+                      Optional observability settings. Ship logs and metrics to a dedicated deployment.
+                    items:
+                      properties:
+                        deploymentId:
+                          description: Destination deployment ID for the shipped logs
+                            and monitoring metrics. Use self as destination deployment
+                            ID to target the current deployment.
+                          type: string
+                        logs:
+                          description: Enables or disables shipping logs. Defaults
+                            to true.
+                          type: boolean
+                        metrics:
+                          description: Enables or disables shipping metrics. Defaults
+                            to true.
+                          type: boolean
+                        refId:
+                          description: Elasticsearch resource kind ref_id of the destination
+                            deployment.
+                          type: string
+                      type: object
+                    type: array
+                  region:
+                    description: |-
+                      Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE) installations, set "ece-region".
+                      Required ESS region where to create the deployment, for ECE environments "ece-region" must be set
+                    type: string
+                  requestId:
+                    description: |-
+                      Request ID to set when you create the deployment. Use it only when previous attempts return an error and request_id is returned as part of the error.
+                      Optional request_id to set on the create operation, only use when previous create attempts return with an error and a request_id is returned as part of the error
+                    type: string
+                  tags:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Key value map of arbitrary string tags.
+                      Optional map of deployment tags
+                    type: object
+                    x-kubernetes-map-type: granular
+                  trafficFilter:
+                    description: |-
+                      List of traffic filter rule identifiers that will be applied to the deployment.
+                      Optional list of traffic filters to apply to this deployment.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                  version:
+                    description: |-
+                      Elastic Stack version to use for all the deployment resources.
+                      Required Elastic Stack version to use for all of the deployment resources
+                    type: string
+                type: object
+              managementPolicies:
+                default:
+                - '*'
+                description: |-
+                  THIS IS A BETA FIELD. It is on by default but can be opted out
+                  through a Crossplane feature flag.
+                  ManagementPolicies specify the array of actions Crossplane is allowed to
+                  take on the managed and external resources.
+                  This field is planned to replace the DeletionPolicy field in a future
+                  release. Currently, both could be set independently and non-default
+                  values would be honored if the feature flag is enabled. If both are
+                  custom, the DeletionPolicy field will be ignored.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                  and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md
+                items:
+                  description: |-
+                    A ManagementAction represents an action that the Crossplane controllers
+                    can take on an external resource.
+                  enum:
+                  - Observe
+                  - Create
+                  - Update
+                  - Delete
+                  - LateInitialize
+                  - '*'
+                  type: string
+                type: array
+              providerConfigRef:
+                default:
+                  name: default
+                description: |-
+                  ProviderConfigReference specifies how the provider that will be used to
+                  create, observe, update, and delete this managed resource should be
+                  configured.
+                properties:
+                  name:
+                    description: Name of the referenced object.
+                    type: string
+                  policy:
+                    description: Policies for referencing.
+                    properties:
+                      resolution:
+                        default: Required
+                        description: |-
+                          Resolution specifies whether resolution of this reference is required.
+                          The default is 'Required', which means the reconcile will fail if the
+                          reference cannot be resolved. 'Optional' means this reference will be
+                          a no-op if it cannot be resolved.
+                        enum:
+                        - Required
+                        - Optional
+                        type: string
+                      resolve:
+                        description: |-
+                          Resolve specifies when this reference should be resolved. The default
+                          is 'IfNotPresent', which will attempt to resolve the reference only when
+                          the corresponding field is not present. Use 'Always' to resolve the
+                          reference on every reconcile.
+                        enum:
+                        - Always
+                        - IfNotPresent
+                        type: string
+                    type: object
+                required:
+                - name
+                type: object
+              publishConnectionDetailsTo:
+                description: |-
+                  PublishConnectionDetailsTo specifies the connection secret config which
+                  contains a name, metadata and a reference to secret store config to
+                  which any connection details for this managed resource should be written.
+                  Connection details frequently include the endpoint, username,
+                  and password required to connect to the managed resource.
+                properties:
+                  configRef:
+                    default:
+                      name: default
+                    description: |-
+                      SecretStoreConfigRef specifies which secret store config should be used
+                      for this ConnectionSecret.
+                    properties:
+                      name:
+                        description: Name of the referenced object.
+                        type: string
+                      policy:
+                        description: Policies for referencing.
+                        properties:
+                          resolution:
+                            default: Required
+                            description: |-
+                              Resolution specifies whether resolution of this reference is required.
+                              The default is 'Required', which means the reconcile will fail if the
+                              reference cannot be resolved. 'Optional' means this reference will be
+                              a no-op if it cannot be resolved.
+                            enum:
+                            - Required
+                            - Optional
+                            type: string
+                          resolve:
+                            description: |-
+                              Resolve specifies when this reference should be resolved. The default
+                              is 'IfNotPresent', which will attempt to resolve the reference only when
+                              the corresponding field is not present. Use 'Always' to resolve the
+                              reference on every reconcile.
+                            enum:
+                            - Always
+                            - IfNotPresent
+                            type: string
+                        type: object
+                    required:
+                    - name
+                    type: object
+                  metadata:
+                    description: Metadata is the metadata for connection secret.
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: |-
+                          Annotations are the annotations to be added to connection secret.
+                          - For Kubernetes secrets, this will be used as "metadata.annotations".
+                          - It is up to Secret Store implementation for others store types.
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        description: |-
+                          Labels are the labels/tags to be added to connection secret.
+                          - For Kubernetes secrets, this will be used as "metadata.labels".
+                          - It is up to Secret Store implementation for others store types.
+                        type: object
+                      type:
+                        description: |-
+                          Type is the SecretType for the connection secret.
+                          - Only valid for Kubernetes Secret Stores.
+                        type: string
+                    type: object
+                  name:
+                    description: Name is the name of the connection secret.
+                    type: string
+                required:
+                - name
+                type: object
+              writeConnectionSecretToRef:
+                description: |-
+                  WriteConnectionSecretToReference specifies the namespace and name of a
+                  Secret to which any connection details for this managed resource should
+                  be written. Connection details frequently include the endpoint, username,
+                  and password required to connect to the managed resource.
+                  This field is planned to be replaced in a future release in favor of
+                  PublishConnectionDetailsTo. Currently, both could be set independently
+                  and connection details would be published to both without affecting
+                  each other.
+                properties:
+                  name:
+                    description: Name of the secret.
+                    type: string
+                  namespace:
+                    description: Namespace of the secret.
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
+            required:
+            - forProvider
+            type: object
+            x-kubernetes-validations:
+            - message: spec.forProvider.deploymentTemplateId is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.deploymentTemplateId)
+                || (has(self.initProvider) && has(self.initProvider.deploymentTemplateId))'
+            - message: spec.forProvider.elasticsearch is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.elasticsearch)
+                || (has(self.initProvider) && has(self.initProvider.elasticsearch))'
+            - message: spec.forProvider.region is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.region)
+                || (has(self.initProvider) && has(self.initProvider.region))'
+            - message: spec.forProvider.version is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.version)
+                || (has(self.initProvider) && has(self.initProvider.version))'
+          status:
+            description: DeploymentStatus defines the observed state of Deployment.
+            properties:
+              atProvider:
+                properties:
+                  alias:
+                    description: |-
+                      Deployment alias, affects the format of the resource URLs.
+                      Optional deployment alias that affects the format of the resource URLs
+                    type: string
+                  apm:
+                    description: |-
+                      DEPRECATED  APM instance definition, can only be specified once. It should only be used with deployments with a version prior to 8.0.0.
+                      Optional APM resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            APM settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Apm configuration options for the APM Server
+                          items:
+                            properties:
+                              debugEnabled:
+                                description: |-
+                                  Enable debug mode for APM servers. Defaults to false.
+                                  Optionally enable debug mode for APM servers - defaults to false
+                                type: boolean
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the APM nodes will use. Note that this field will
+                                  only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level apm.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level apm.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level apm.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level apm.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        httpEndpoint:
+                          description: Kibana resource HTTP endpoint.
+                          type: string
+                        httpsEndpoint:
+                          description: Kibana resource HTTPs endpoint.
+                          type: string
+                        refId:
+                          description: Can be set on the APM resource. The default
+                            value main-apm is recommended.
+                          type: string
+                        region:
+                          description: Elasticsearch Service (ESS) region where to
+                            create the deployment. For Elastic Cloud Enterprise (ECE)
+                            installations, set "ece-region".
+                          type: string
+                        resourceId:
+                          description: Kibana resource unique identifier.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since APM has only one instance type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the APM deployment
+                                  will span. This is used to set HA. When omitted,
+                                  it defaults to the deployment template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  deploymentTemplateId:
+                    description: |-
+                      Deployment template identifier to create the deployment from. See the full list of regions and deployment templates available in ESS.
+                      Required Deployment Template identifier to create the deployment from
+                    type: string
+                  elasticsearch:
+                    description: |-
+                      node Elasticsearch clusters, use multiple topology blocks.
+                      Required Elasticsearch resource definition
+                    items:
+                      properties:
+                        autoscale:
+                          description: |-
+                            Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".
+                            Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".
+                          type: string
+                        cloudId:
+                          description: |-
+                            Encoded Elasticsearch credentials to use in Beats or Logstash. For more information, see Configure Beats and Logstash with Cloud ID.
+                            The encoded Elasticsearch credentials to use in Beats or Logstash
+                          type: string
+                        config:
+                          description: |-
+                            Elasticsearch settings applied to all topologies unless overridden in the topology element.
+                            Optional Elasticsearch settings which will be applied to all topologies unless overridden on the topology element
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Elasticsearch nodes will use. Note that this
+                                  field will only work for internal users only.
+                                type: string
+                              plugins:
+                                description: |-
+                                  List of Elasticsearch supported plugins. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and ecctl.
+                                  List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level elasticsearch.yml setting overrides.
+                                  JSON-formatted user level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level elasticsearch.yml setting overrides.
+                                  JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level elasticsearch.yml setting overrides.
+                                  YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level elasticsearch.yml setting overrides.
+                                  YAML-formatted user level "elasticsearch.yml" setting overrides
+                                type: string
+                            type: object
+                          type: array
+                        extension:
+                          description: |-
+                            Custom Elasticsearch bundles or plugins. Can be set multiple times.
+                            Optional Elasticsearch extensions such as custom bundles or plugins.
+                          items:
+                            properties:
+                              name:
+                                description: |-
+                                  Extension name.
+                                  Extension name.
+                                type: string
+                              type:
+                                description: |-
+                                  Extension type, only bundle or plugin are supported.
+                                  Extension type, only `bundle` or `plugin` are supported.
+                                type: string
+                              url:
+                                description: |-
+                                  Bundle or plugin URL, the extension URL can be obtained from the ec_deployment_extension.<name>.url attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+                                  Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+                                type: string
+                              version:
+                                description: |-
+                                  Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as 7.* or * but plugins must use full version notation down to the patch level, such as 7.10.1 and wildcards are not allowed.
+                                  Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.
+                                type: string
+                            type: object
+                          type: array
+                        httpEndpoint:
+                          description: |-
+                            Kibana resource HTTP endpoint.
+                            The Elasticsearch resource HTTP endpoint
+                          type: string
+                        httpsEndpoint:
+                          description: |-
+                            Kibana resource HTTPs endpoint.
+                            The Elasticsearch resource HTTPs endpoint
+                          type: string
+                        refId:
+                          description: |-
+                            Can be set on the Elasticsearch resource. The default value main-elasticsearch is recommended.
+                            Optional ref_id to set on the Elasticsearch resource
+                          type: string
+                        region:
+                          description: |-
+                            Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE) installations, set "ece-region".
+                            The Elasticsearch resource region
+                          type: string
+                        remoteCluster:
+                          description: |-
+                            Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
+                            Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times
+                          items:
+                            properties:
+                              alias:
+                                description: |-
+                                  Alias for the Cross Cluster Search binding.
+                                  Alias for this Cross Cluster Search binding
+                                type: string
+                              deploymentId:
+                                description: |-
+                                  Remote deployment ID.
+                                  Remote deployment ID
+                                type: string
+                              refId:
+                                description: |-
+                                  elasticsearch is recommended.
+                                  Remote elasticsearch "ref_id", it is best left to the default value
+                                type: string
+                              skipUnavailable:
+                                description: |-
+                                  If true, skip the cluster during search when disconnected. Defaults to false.
+                                  If true, skip the cluster during search when disconnected
+                                type: boolean
+                            type: object
+                          type: array
+                        resourceId:
+                          description: |-
+                            Kibana resource unique identifier.
+                            The Elasticsearch resource unique identifier
+                          type: string
+                        snapshotSource:
+                          description: |-
+                            Restores data from a snapshot of another deployment.
+                            Optional snapshot source settings. Restore data from a snapshot of another deployment.
+                          items:
+                            properties:
+                              snapshotName:
+                                description: |-
+                                  Name of the snapshot to restore. Use __latest_success__ to get the most recent successful snapshot (Defaults to __latest_success__).
+                                  Name of the snapshot to restore. Use '__latest_success__' to get the most recent successful snapshot.
+                                type: string
+                              sourceElasticsearchClusterId:
+                                description: |-
+                                  ID of the Elasticsearch cluster, not to be confused with the deployment ID, that will be used as the source of the snapshot. The Elasticsearch cluster must be in the same region and must have a compatible version of the Elastic Stack.
+                                  ID of the Elasticsearch cluster that will be used as the source of the snapshot
+                                type: string
+                            type: object
+                          type: array
+                        strategy:
+                          description: |-
+                            Choose the configuration strategy used to apply the changes.
+                            Configuration strategy settings.
+                          items:
+                            properties:
+                              type:
+                                description: |-
+                                  Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
+                                  Configuration strategy type autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all
+                                type: string
+                            type: object
+                          type: array
+                        topology:
+                          description: |-
+                            Can be set multiple times to compose complex topologies.
+                            Optional topology element which must be set once but can be set multiple times to compose complex topologies
+                          items:
+                            properties:
+                              autoscaling:
+                                description: |-
+                                  Autoscaling policy defining the maximum and / or minimum total size for this topology element. For more information refer to the autoscaling block.
+                                  Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.
+                                items:
+                                  properties:
+                                    maxSize:
+                                      description: |-
+                                        Defines the maximum size the deployment will scale up to. When set, scaling up will be enabled. All tiers should support this option.
+                                        Maximum size value for the maximum autoscaling setting.
+                                      type: string
+                                    maxSizeResource:
+                                      description: |-
+                                        Defines the resource type the scale up will use (Defaults to "memory").
+                                        Maximum resource type for the maximum autoscaling setting.
+                                      type: string
+                                    minSize:
+                                      description: |-
+                                        Defines the minimum size the deployment will scale down to. When set, scale down will be enabled, please note that not all the tiers support this option.
+                                        Minimum size value for the minimum autoscaling setting.
+                                      type: string
+                                    minSizeResource:
+                                      description: |-
+                                        Defines the resource type the scale down will use (Defaults to "memory").
+                                        Minimum resource type for the minimum autoscaling setting.
+                                      type: string
+                                    policyOverrideJson:
+                                      description: |-
+                                        Computed policy overrides set directly via the API or other clients.
+                                        Computed policy overrides set directly via the API or other clients.
+                                      type: string
+                                  type: object
+                                type: array
+                              config:
+                                description: |-
+                                  Kibana settings applied to all topologies unless overridden in the topology element.
+                                  Computed read-only configuration to avoid unsetting plan settings from 'topology.elasticsearch'
+                                items:
+                                  properties:
+                                    plugins:
+                                      description: List of Elasticsearch supported
+                                        plugins. Check the Stack Pack version to see
+                                        which plugins are supported for each version.
+                                        This is currently only available from the
+                                        UI and ecctl.
+                                      items:
+                                        type: string
+                                      type: array
+                                      x-kubernetes-list-type: set
+                                    userSettingsJson:
+                                      description: JSON-formatted user level kibana.yml
+                                        setting overrides.
+                                      type: string
+                                    userSettingsOverrideJson:
+                                      description: JSON-formatted admin (ECE) level
+                                        kibana.yml setting overrides.
+                                      type: string
+                                    userSettingsOverrideYaml:
+                                      description: YAML-formatted admin (ECE) level
+                                        kibana.yml setting overrides.
+                                      type: string
+                                    userSettingsYaml:
+                                      description: YAML-formatted user level kibana.yml
+                                        setting overrides.
+                                      type: string
+                                  type: object
+                                type: array
+                              id:
+                                description: |-
+                                  Unique topology identifier. It generally refers to an Elasticsearch data tier, such as hot_content, warm, cold, coordinating, frozen, ml or master.
+                                  Required topology ID from the deployment template
+                                type: string
+                              instanceConfigurationId:
+                                description: |-
+                                  Default instance configuration of the deployment template. No need to change this value since Kibana has only one instance type.
+                                  Computed Instance Configuration ID of the topology element
+                                type: string
+                              nodeRoles:
+                                description: |-
+                                  List of roles for the topology element. They are inferred from the deployment template.
+                                  The computed list of node roles for the current topology element
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                              nodeTypeData:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (data node).
+                                  The node type for the Elasticsearch Topology element (data node)
+                                type: string
+                              nodeTypeIngest:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (ingest node).
+                                  The node type for the Elasticsearch Topology element (ingest node)
+                                type: string
+                              nodeTypeMaster:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (master node).
+                                  The node type for the Elasticsearch Topology element (master node)
+                                type: string
+                              nodeTypeMl:
+                                description: |-
+                                  The node type for the Elasticsearch cluster (machine learning node).
+                                  The node type for the Elasticsearch Topology element (machine learning node)
+                                type: string
+                              size:
+                                description: |-
+                                  Amount in Gigabytes per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
+                                  Optional amount of memory per node in the "<size in GB>g" notation
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: |-
+                                  Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
+                                  Optional number of zones that the Elasticsearch cluster will span. This is used to set HA
+                                type: number
+                            type: object
+                          type: array
+                        trustAccount:
+                          description: |-
+                            The trust relationships with other ESS accounts.
+                            Optional Elasticsearch account trust settings.
+                          items:
+                            properties:
+                              accountId:
+                                description: |-
+                                  The account identifier to establish the new trust with.
+                                  The ID of the Account.
+                                type: string
+                              trustAll:
+                                description: |-
+                                  If true, all clusters in this account will by default be trusted and the trust_allowlist is ignored.
+                                  If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+                                type: boolean
+                              trustAllowlist:
+                                description: |-
+                                  The list of clusters to trust. Only used when trust_all is false.
+                                  The list of clusters to trust. Only used when `trust_all` is false.
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                            type: object
+                          type: array
+                        trustExternal:
+                          description: |-
+                            The trust relationship with external entities (remote environments, remote accounts...).
+                            Optional Elasticsearch external trust settings.
+                          items:
+                            properties:
+                              relationshipId:
+                                description: |-
+                                  Identifier of the the trust relationship with external entities (remote environments, remote accounts...).
+                                  The ID of the external trust relationship.
+                                type: string
+                              trustAll:
+                                description: |-
+                                  If true, all clusters in this external entity will be trusted and the trust_allowlist is ignored.
+                                  If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+                                type: boolean
+                              trustAllowlist:
+                                description: |-
+                                  The list of clusters to trust. Only used when trust_all is false.
+                                  The list of clusters to trust. Only used when `trust_all` is false.
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  elasticsearchUsername:
+                    description: |-
+                      Auto-generated Elasticsearch username.
+                      Computed username obtained upon creating the Elasticsearch resource
+                    type: string
+                  enterpriseSearch:
+                    description: |-
+                      node Enterprise Search deployments, use multiple topology blocks.
+                      Optional Enterprise Search resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Enterprise Search settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Enterprise Search configuration options for the Enterprise Search Server
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Enterprise Search nodes will use. Note that
+                                  this field will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level enterprise_search.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level enterprise_search.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level enterprise_search.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level enterprise_search.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        httpEndpoint:
+                          description: Kibana resource HTTP endpoint.
+                          type: string
+                        httpsEndpoint:
+                          description: Kibana resource HTTPs endpoint.
+                          type: string
+                        refId:
+                          description: Can be set on the Enterprise Search resource.
+                            The default value main-enterprise_search is recommended.
+                          type: string
+                        region:
+                          description: Elasticsearch Service (ESS) region where to
+                            create the deployment. For Elastic Cloud Enterprise (ECE)
+                            installations, set "ece-region".
+                          type: string
+                        resourceId:
+                          description: Kibana resource unique identifier.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. To change it, use the full
+                                  list of regions and deployment templates available
+                                  in ESS.
+                                type: string
+                              nodeTypeAppserver:
+                                description: Node type (Appserver) for the Enterprise
+                                  Search topology element.
+                                type: boolean
+                              nodeTypeConnector:
+                                description: Node type (Connector) for the Enterprise
+                                  Search topology element.
+                                type: boolean
+                              nodeTypeWorker:
+                                description: Node type (worker) for the Enterprise
+                                  Search topology element.
+                                type: boolean
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Enterprise Search
+                                  deployment will span. This is used to set HA. When
+                                  omitted, it defaults to the deployment template
+                                  value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  id:
+                    description: Deployment identifier.
+                    type: string
+                  integrationsServer:
+                    description: |-
+                      Integrations Server instance definition, can only be specified once. It has replaced apm in stack version 8.0.0.
+                      Optional Integrations Server resource definition
+                    items:
+                      properties:
+                        apmHttpsEndpoint:
+                          description: HTTPs endpoint for APM Server.
+                          type: string
+                        config:
+                          description: |-
+                            Integrations Server settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server
+                          items:
+                            properties:
+                              debugEnabled:
+                                description: |-
+                                  Enable debug mode for the component. Defaults to false.
+                                  Optionally enable debug mode for IntegrationsServer servers - defaults to false
+                                type: boolean
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the IntegrationsServer nodes will use. Note that
+                                  this field will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        fleetHttpsEndpoint:
+                          description: HTTPs endpoint for Fleet Server.
+                          type: string
+                        httpEndpoint:
+                          description: Kibana resource HTTP endpoint.
+                          type: string
+                        httpsEndpoint:
+                          description: Kibana resource HTTPs endpoint.
+                          type: string
+                        refId:
+                          description: Can be set on the Integrations Server resource.
+                            The default value main-integrations_server is recommended.
+                          type: string
+                        region:
+                          description: Elasticsearch Service (ESS) region where to
+                            create the deployment. For Elastic Cloud Enterprise (ECE)
+                            installations, set "ece-region".
+                          type: string
+                        resourceId:
+                          description: Kibana resource unique identifier.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since Integrations Server has only one instance
+                                  type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Integrations
+                                  Server deployment will span. This is used to set
+                                  HA. When omitted, it defaults to the deployment
+                                  template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  kibana:
+                    description: |-
+                      Kibana instance definition, can only be specified once.
+                      Optional Kibana resource definition
+                    items:
+                      properties:
+                        config:
+                          description: |-
+                            Kibana settings applied to all topologies unless overridden in the topology element.
+                            Optionally define the Kibana configuration options for the Kibana Server
+                          items:
+                            properties:
+                              dockerImage:
+                                description: Optionally override the docker image
+                                  the Kibana nodes will use. Note that this field
+                                  will only work for internal users only.
+                                type: string
+                              userSettingsJson:
+                                description: |-
+                                  JSON-formatted user level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideJson:
+                                description: |-
+                                  JSON-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                              userSettingsOverrideYaml:
+                                description: |-
+                                  YAML-formatted admin (ECE) level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+                                type: string
+                              userSettingsYaml:
+                                description: |-
+                                  YAML-formatted user level kibana.yml setting overrides.
+                                  An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
+                                type: string
+                            type: object
+                          type: array
+                        elasticsearchClusterRefId:
+                          description: This field references the ref_id of the deployment
+                            Elasticsearch cluster. The default value main-elasticsearch
+                            is recommended.
+                          type: string
+                        httpEndpoint:
+                          description: Kibana resource HTTP endpoint.
+                          type: string
+                        httpsEndpoint:
+                          description: Kibana resource HTTPs endpoint.
+                          type: string
+                        refId:
+                          description: Can be set on the Kibana resource. The default
+                            value main-kibana is recommended.
+                          type: string
+                        region:
+                          description: Elasticsearch Service (ESS) region where to
+                            create the deployment. For Elastic Cloud Enterprise (ECE)
+                            installations, set "ece-region".
+                          type: string
+                        resourceId:
+                          description: Kibana resource unique identifier.
+                          type: string
+                        topology:
+                          description: Can be set multiple times to compose complex
+                            topologies.
+                          items:
+                            properties:
+                              instanceConfigurationId:
+                                description: Default instance configuration of the
+                                  deployment template. No need to change this value
+                                  since Kibana has only one instance type.
+                                type: string
+                              size:
+                                description: Amount of memory (RAM) per topology element
+                                  in the "g" notation. When omitted, it defaults to
+                                  the deployment template value.
+                                type: string
+                              sizeResource:
+                                description: |-
+                                  Type of resource to which the size is assigned. Defaults to "memory".
+                                  Optional size type, defaults to "memory".
+                                type: string
+                              zoneCount:
+                                description: Number of zones that the Kibana deployment
+                                  will span. This is used to set HA. When omitted,
+                                  it defaults to the deployment template value.
+                                type: number
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                  name:
+                    description: |-
+                      Name of the deployment.
+                      Optional name for the deployment
+                    type: string
+                  observability:
+                    description: |-
+                      Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself.
+                      Optional observability settings. Ship logs and metrics to a dedicated deployment.
+                    items:
+                      properties:
+                        deploymentId:
+                          description: Destination deployment ID for the shipped logs
+                            and monitoring metrics. Use self as destination deployment
+                            ID to target the current deployment.
+                          type: string
+                        logs:
+                          description: Enables or disables shipping logs. Defaults
+                            to true.
+                          type: boolean
+                        metrics:
+                          description: Enables or disables shipping metrics. Defaults
+                            to true.
+                          type: boolean
+                        refId:
+                          description: Elasticsearch resource kind ref_id of the destination
+                            deployment.
+                          type: string
+                      type: object
+                    type: array
+                  region:
+                    description: |-
+                      Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE) installations, set "ece-region".
+                      Required ESS region where to create the deployment, for ECE environments "ece-region" must be set
+                    type: string
+                  requestId:
+                    description: |-
+                      Request ID to set when you create the deployment. Use it only when previous attempts return an error and request_id is returned as part of the error.
+                      Optional request_id to set on the create operation, only use when previous create attempts return with an error and a request_id is returned as part of the error
+                    type: string
+                  tags:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Key value map of arbitrary string tags.
+                      Optional map of deployment tags
+                    type: object
+                    x-kubernetes-map-type: granular
+                  trafficFilter:
+                    description: |-
+                      List of traffic filter rule identifiers that will be applied to the deployment.
+                      Optional list of traffic filters to apply to this deployment.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                  version:
+                    description: |-
+                      Elastic Stack version to use for all the deployment resources.
+                      Required Elastic Stack version to use for all of the deployment resources
+                    type: string
+                type: object
+              conditions:
+                description: Conditions of the resource.
+                items:
+                  description: A Condition that may apply to a resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        LastTransitionTime is the last time this condition transitioned from one
+                        status to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        A Message containing details about this condition's last transition from
+                        one status to another, if any.
+                      type: string
+                    reason:
+                      description: A Reason for this condition's last transition from
+                        one status to another.
+                      type: string
+                    status:
+                      description: Status of this condition; is it currently True,
+                        False, or Unknown?
+                      type: string
+                    type:
+                      description: |-
+                        Type of this condition. At most one of each condition type may apply to
+                        a resource at any point in time.
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

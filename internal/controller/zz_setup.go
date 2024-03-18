@@ -6,6 +6,9 @@ import (
 	"github.com/crossplane/upjet/pkg/controller"
 
 	deployment "github.com/crossplane-contrib/provider-upjet-ec/internal/controller/elasticcloud/deployment"
+	extension "github.com/crossplane-contrib/provider-upjet-ec/internal/controller/elasticcloud/extension"
+	trafficfilter "github.com/crossplane-contrib/provider-upjet-ec/internal/controller/elasticcloud/trafficfilter"
+	trafficfilterassociation "github.com/crossplane-contrib/provider-upjet-ec/internal/controller/elasticcloud/trafficfilterassociation"
 	providerconfig "github.com/crossplane-contrib/provider-upjet-ec/internal/controller/providerconfig"
 )
 
@@ -14,6 +17,9 @@ import (
 func Setup(mgr ctrl.Manager, o controller.Options) error {
 	for _, setup := range []func(ctrl.Manager, controller.Options) error{
 		deployment.Setup,
+		extension.Setup,
+		trafficfilter.Setup,
+		trafficfilterassociation.Setup,
 		providerconfig.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {

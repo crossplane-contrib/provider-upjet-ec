@@ -1,0 +1,38 @@
+apiVersion: elasticcloud.crossplane.io/v1alpha1
+kind: TrafficFilter
+metadata:
+  annotations:
+    meta.upbound.io/example-id: elasticcloud/v1alpha1/trafficfilter
+  labels:
+    testing.upbound.io/example-name: example
+  name: example
+spec:
+  forProvider:
+    name: my traffic filter name
+    region: us-east-1
+    rule:
+    - source: 0.0.0.0/0
+    type: ip
+
+---
+
+apiVersion: elasticcloud.crossplane.io/v1alpha1
+kind: Deployment
+metadata:
+  annotations:
+    meta.upbound.io/example-id: elasticcloud/v1alpha1/trafficfilter
+  labels:
+    testing.upbound.io/example-name: example_minimal
+  name: example-minimal
+spec:
+  forProvider:
+    deploymentTemplateId: aws-io-optimized-v2
+    elasticsearch:
+    - {}
+    kibana:
+    - {}
+    name: my_example_deployment
+    region: us-east-1
+    trafficFilter:
+    - ${ec_deployment_traffic_filter.example.id}
+    version: ${data.ec_stack.latest.version}

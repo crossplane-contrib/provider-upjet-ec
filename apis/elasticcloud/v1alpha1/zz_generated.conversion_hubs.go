@@ -8,3 +8,12 @@ package v1alpha1
 
 // Hub marks this type as a conversion hub.
 func (tr *Deployment) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *Extension) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *TrafficFilter) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *TrafficFilterAssociation) Hub() {}

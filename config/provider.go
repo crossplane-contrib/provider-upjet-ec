@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	resourcePrefix = "ec"
+	resourcePrefix = "elasticcloud"
 	modulePath     = "github.com/crossplane-contrib/provider-upjet-ec"
 )
 
@@ -37,7 +37,9 @@ func GetProvider() *ujconfig.Provider {
 	for _, configure := range []func(provider *ujconfig.Provider){
 		// add custom config functions
 		ec.ConfigureDeployment,
-		ec.ConfigureStack,
+		ec.ConfigureDeploymentExtension,
+		ec.ConfigureDeploymentTrafficFilter,
+		ec.ConfigureDeploymentTrafficFilterAssociation,
 	} {
 		configure(pc)
 	}

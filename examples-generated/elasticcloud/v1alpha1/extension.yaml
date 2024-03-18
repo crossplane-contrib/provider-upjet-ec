@@ -1,0 +1,16 @@
+apiVersion: elasticcloud.crossplane.io/v1alpha1
+kind: Extension
+metadata:
+  annotations:
+    meta.upbound.io/example-id: elasticcloud/v1alpha1/extension
+  labels:
+    testing.upbound.io/example-name: example_extension
+  name: example-extension
+spec:
+  forProvider:
+    description: my extension
+    extensionType: bundle
+    fileHash: ${filebase64sha256(local.file_path)}
+    filePath: ${local.file_path}
+    name: my_extension
+    version: '*'

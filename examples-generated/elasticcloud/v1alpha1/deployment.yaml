@@ -1,0 +1,22 @@
+apiVersion: elasticcloud.crossplane.io/v1alpha1
+kind: Deployment
+metadata:
+  annotations:
+    meta.upbound.io/example-id: elasticcloud/v1alpha1/deployment
+  labels:
+    testing.upbound.io/example-name: example_minimal
+  name: example-minimal
+spec:
+  forProvider:
+    deploymentTemplateId: aws-io-optimized-v2
+    elasticsearch:
+    - {}
+    enterpriseSearch:
+    - {}
+    integrationsServer:
+    - {}
+    kibana:
+    - {}
+    name: my_example_deployment
+    region: us-east-1
+    version: ${data.ec_stack.latest.version}

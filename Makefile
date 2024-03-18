@@ -1,17 +1,17 @@
 # ====================================================================================
 # Setup Project
 
-PROJECT_NAME ?= upjet-provider-template
-PROJECT_REPO ?= github.com/upbound/$(PROJECT_NAME)
+PROJECT_NAME ?= provider-upjet-ec
+PROJECT_REPO ?= github.com/crossplane-contrib/$(PROJECT_NAME)
 
 export TERRAFORM_VERSION ?= 1.2.1
 
-export TERRAFORM_PROVIDER_SOURCE ?= hashicorp/null
-export TERRAFORM_PROVIDER_REPO ?= https://github.com/hashicorp/terraform-provider-null
-export TERRAFORM_PROVIDER_VERSION ?= 3.1.0
-export TERRAFORM_PROVIDER_DOWNLOAD_NAME ?= terraform-provider-null
-export TERRAFORM_PROVIDER_DOWNLOAD_URL_PREFIX ?= https://releases.hashicorp.com/$(TERRAFORM_PROVIDER_DOWNLOAD_NAME)/$(TERRAFORM_PROVIDER_VERSION)
-export TERRAFORM_NATIVE_PROVIDER_BINARY ?= terraform-provider-null_v3.1.0_x5
+export TERRAFORM_PROVIDER_SOURCE ?= elastic/ec
+export TERRAFORM_PROVIDER_REPO ?= https://github.com/elastic/terraform-provider-ec
+export TERRAFORM_PROVIDER_VERSION ?= 0.5.1
+export TERRAFORM_PROVIDER_DOWNLOAD_NAME ?= terraform-provider-ec
+export TERRAFORM_PROVIDER_DOWNLOAD_URL_PREFIX ?= $(TERRAFORM_PROVIDER_REPO)/releases/download/v$(TERRAFORM_PROVIDER_VERSION)
+export TERRAFORM_NATIVE_PROVIDER_BINARY ?= terraform-provider-ec_0.5.1
 export TERRAFORM_DOCS_PATH ?= docs/resources
 
 
@@ -40,8 +40,8 @@ NPROCS ?= 1
 # to half the number of CPU cores.
 GO_TEST_PARALLEL := $(shell echo $$(( $(NPROCS) / 2 )))
 
-GO_REQUIRED_VERSION ?= 1.19
-GOLANGCILINT_VERSION ?= 1.50.0
+GO_REQUIRED_VERSION ?= 1.21
+GOLANGCILINT_VERSION ?= 1.55.2
 GO_STATIC_PACKAGES = $(GO_PROJECT)/cmd/provider $(GO_PROJECT)/cmd/generator
 GO_LDFLAGS += -X $(GO_PROJECT)/internal/version.Version=$(VERSION)
 GO_SUBDIRS += cmd internal apis
@@ -89,7 +89,7 @@ fallthrough: submodules
 
 # NOTE(hasheddan): we force image building to happen prior to xpkg build so that
 # we ensure image is present in daemon.
-xpkg.build.upjet-provider-template: do.build.images
+xpkg.build.provider-upjet-ec: do.build.images
 
 # NOTE(hasheddan): we ensure up is installed prior to running platform-specific
 # build steps in parallel to avoid encountering an installation race condition.
@@ -150,7 +150,7 @@ cobertura:
 # Update the submodules, such as the common build scripts.
 submodules:
 	@git submodule sync
-	@git submodule update --init --recursive
+	@git submodule update --remote --recursive
 
 # This is for running out-of-cluster locally, and is for convenience. Running
 # this make target will print out the command which was used. For more control,
@@ -169,7 +169,7 @@ CROSSPLANE_NAMESPACE = upbound-system
 # This target requires the following environment variables to be set:
 # - UPTEST_EXAMPLE_LIST, a comma-separated list of examples to test
 #   To ensure the proper functioning of the end-to-end test resource pre-deletion hook, it is crucial to arrange your resources appropriately. 
-#   You can check the basic implementation here: https://github.com/upbound/uptest/blob/main/internal/templates/01-delete.yaml.tmpl.
+#   You can check the basic implementation here: https://github.com/upbound/uptest/blob/main/internal/upjet-ecs/01-delete.yaml.tmpl.
 # - UPTEST_CLOUD_CREDENTIALS (optional), multiple sets of AWS IAM User credentials specified as key=value pairs.
 #   The support keys are currently `DEFAULT` and `PEER`. So, an example for the value of this env. variable is:
 #   DEFAULT='[default]

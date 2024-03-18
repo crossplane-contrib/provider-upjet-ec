@@ -10,8 +10,8 @@ on:
 
 env:
   # Common versions
-  GO_VERSION: '1.19'
-  GOLANGCI_VERSION: 'v1.50.0'
+  GO_VERSION: '1.21'
+  GOLANGCI_VERSION: 'v1.55.2'
   DOCKER_BUILDX_VERSION: 'v0.8.2'
 
   # Common users. We can't run a step 'if secrets.XXX != ""' but we can run a
@@ -103,6 +103,8 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: ${{ env.GOLANGCI_VERSION }}
+          skip-pkg-cache: true
+          skip-build-cache: true
 
   check-diff:
     runs-on: ubuntu-22.04

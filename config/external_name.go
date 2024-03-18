@@ -6,11 +6,12 @@ package config
 
 import "github.com/crossplane/upjet/pkg/config"
 
-// ExternalNameConfigs contains all external name configurations for this
-// provider.
+// ExternalNameConfigs contains all external name configurations for this provider.
 var ExternalNameConfigs = map[string]config.ExternalName{
-	// Import requires using a randomly generated ID from provider: nl-2e21sda
-	"null_resource": config.IdentifierFromProvider,
+	"ec_deployment":                            config.IdentifierFromProvider,
+	"ec_deployment_extension":                  config.IdentifierFromProvider,
+	"ec_deployment_traffic_filter":             config.IdentifierFromProvider,
+	"ec_deployment_traffic_filter_association": config.IdentifierFromProvider,
 }
 
 // ExternalNameConfigurations applies all external name configs listed in the
